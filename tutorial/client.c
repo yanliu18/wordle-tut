@@ -12,6 +12,8 @@
 
 #define INVALID_CHAR (-1)
 
+#define SENDER_CHANNEL_ID 0
+
 struct wordle_char {
     int ch;
     enum character_state state;
@@ -33,6 +35,7 @@ void wordle_server_send() {
 
 void serial_send(char *str) {
     // Implement this function to get the serial server to print the string.
+    
 }
 
 // This function prints a CLI Wordle using pretty colours for what characters
@@ -124,4 +127,10 @@ void init(void) {
     print_table(false);
 }
 
-void notified(microkit_channel channel) {}
+void notified(microkit_channel channel) {
+    //Receive a message from sender
+    switch(channel) {
+        case SENDER_CHANNEL_ID:
+            microkit_dbg_puts("Client gets notified by serial server! \n");
+    }
+}

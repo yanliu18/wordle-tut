@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <microkit.h>
 #include "printf.h"
+#include "wordle.h"
 
 // This variable will have the address of the UART device
 uintptr_t uart_base_vaddr;
@@ -14,6 +15,8 @@ uintptr_t uart_base_vaddr;
 #define PL011_UARTFR_RXFE (1 << 4)
 
 #define REG_PTR(base, offset) ((volatile uint32_t *)((base) + (offset)))
+
+#define RECEIVER_CHANNEL_ID 1
 
 void uart_init() {
     *REG_PTR(uart_base_vaddr, UARTIMSC) = 0x50;
@@ -68,6 +71,8 @@ void init(void) {
     // After initialising the UART, print a message to the terminal
     // saying that the serial server has started.
     uart_put_str("SERIAL SERVER: starting\n");
+    // Send a message to receiver
+    microkit_notify(RECEIVER_CHANNEL_ID);
 }
 
 void notified(microkit_channel channel) {
