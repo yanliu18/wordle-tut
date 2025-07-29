@@ -23,8 +23,17 @@
         <map mr="usr_output_buffer" vaddr="0x5000000" perms="rw" setvar_vaddr="obuf_vaddr" />
     </protection_domain>
 
+    <protection_domain name="wordle_server" priority="253">
+        <program_image path="wordle_server.elf" />
+    </protection_domain> 
+
     <channel>
         <end pd="serial_server" id="1" />
         <end pd="client" id="0" />
+    </channel>
+
+    <channel>
+        <end pd="client" id="1" pp="true" />
+        <end pd="wordle_server" id="0" />
     </channel>
 </system>

@@ -13,6 +13,7 @@
 #define INVALID_CHAR (-1)
 
 #define SENDER_CHANNEL_ID 0
+#define PP_CHANEL_ID 1
 
 struct wordle_char {
     int ch;
@@ -31,6 +32,27 @@ void wordle_server_send() {
     // After doing the PPC, the Wordle server should have updated
     // the message-registers containing the state of each character.
     // Look at the message registers and update the `table` accordingly.
+    int line = curr_row - 1;
+    int i = 0;
+    int count = WORD_LENGTH;
+
+    microkit_msginfo msg = microkit_msginfo_new(0, count);
+    for(i = 0; i < count; i++){
+        microkit_mr_set(i, table[line][i].ch);
+        microkit_dbg_puts("set char: ");
+        microkit_dbg_put8(table[line][i].ch);
+        microkit_dbg_putc('\n');
+    }
+    
+
+    microkit_msginfo remsg = microkit_ppcall(PP_CHANEL_ID, msg);
+    for(i = 0; i < count; i++){
+        table[line][i].state = microkit_mr_get(i);
+        microkit_dbg_puts("received state: ");
+        microkit_dbg_put32(microkit_mr_get(i));
+        microkit_dbg_putc('\n');
+    }
+    
 }
 
 void serial_send(char *str) {
