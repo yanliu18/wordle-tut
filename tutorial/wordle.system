@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <system>
-    <memory_region name="uart" size="0x4000" phys_addr="0x9000000" />
+    <memory_region name="uart" size="0x1000" phys_addr="0x9000000" />
     <memory_region name="usr_input_buffer" size="0x1000" />
     <memory_region name="usr_output_buffer" size="0x1000" />
     
@@ -13,14 +13,14 @@
         <irq id="0" irq="33" />
 
         <map mr="usr_input_buffer" vaddr="0x4000000" perms="rw" setvar_vaddr="ibuf_vaddr" />
-        <map mr="usr_output_buffer" vaddr="0x4001000" perms="r" setvar_vaddr="obuf_vaddr" />
+        <map mr="usr_output_buffer" vaddr="0x5000000" perms="r" setvar_vaddr="obuf_vaddr" />
     </protection_domain>
 
     <protection_domain name="client" priority="200">
         <program_image path="client.elf" />
 
         <map mr="usr_input_buffer" vaddr="0x4000000" perms="r" setvar_vaddr="ibuf_vaddr" />
-        <map mr="usr_output_buffer" vaddr="0x4001000" perms="rw" setvar_vaddr="obuf_vaddr" />
+        <map mr="usr_output_buffer" vaddr="0x5000000" perms="rw" setvar_vaddr="obuf_vaddr" />
     </protection_domain>
 
     <channel>

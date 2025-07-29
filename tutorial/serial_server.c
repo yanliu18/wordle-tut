@@ -16,6 +16,7 @@ uintptr_t uart_base_vaddr;
 
 #define REG_PTR(base, offset) ((volatile uint32_t *)((base) + (offset)))
 
+#define UART_CHANNEL_ID 0
 #define RECEIVER_CHANNEL_ID 1
 
 void uart_init() {
@@ -75,11 +76,27 @@ void init(void) {
     microkit_notify(RECEIVER_CHANNEL_ID);
 }
 
-void notified(microkit_channel channel) {
+void handle_uart_input(microkit_channel channel){
     int ch = uart_get_char();
 
-    uart_put_char(ch);
+    *ibuf_vaddr = (char)ch;
+    ibuf_vaddr++;
 
     uart_handle_irq();
     microkit_irq_ack(channel);
+
+    microkit_notify(RECEIVER_CHANNEL_ID);
+}
+
+void handle_uart_output(){
+    uart_put_str(obuf_vaddr);
+}
+
+void notified(microkit_channel channel) {
+    switch(channel){
+        case UART_CHANNEL_ID:
+            handle_uart_input(channel);
+        case RECEIVER_CHANNEL_ID:
+            uart_put_str(obuf_vaddr);
+    }
 }

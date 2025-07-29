@@ -36,6 +36,11 @@ void wordle_server_send() {
 void serial_send(char *str) {
     // Implement this function to get the serial server to print the string.
     
+    while (*str){
+        *obuf_vaddr = *str;
+        str++;
+        obuf_vaddr++;
+    }
 }
 
 // This function prints a CLI Wordle using pretty colours for what characters
@@ -86,6 +91,7 @@ void init_table() {
     }
 }
 
+
 bool char_is_backspace(int ch) {
     return (ch == 0x7f);
 }
@@ -131,6 +137,11 @@ void notified(microkit_channel channel) {
     //Receive a message from sender
     switch(channel) {
         case SENDER_CHANNEL_ID:
-            microkit_dbg_puts("Client gets notified by serial server! \n");
+            while (*ibuf_vaddr){
+                add_char_to_table(*ibuf_vaddr);
+                ibuf_vaddr ++;
+            }
+            print_table(true);
+            microkit_notify(SENDER_CHANNEL_ID);
     }
 }
