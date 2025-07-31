@@ -5,7 +5,8 @@
 #include "printf.h"
 #include "wordle.h"
 
-#define CLIENT_CHANNEL_ID 0;
+#define CLIENT_CHANNEL_ID 0
+#define VMM_CHANNEL_ID 1
 /*
  * Here we initialise the word to "hello", but later in the tutorial
  * we will actually randomise the word the user is guessing.
@@ -39,14 +40,27 @@ void init(void) {
 void notified(microkit_channel channel) {}
 
 microkit_msginfo protected(microkit_channel ch, microkit_msginfo msginfo){
-    int len = microkit_msginfo_get_count(msginfo);
-    microkit_msginfo res = microkit_msginfo_new(0, len);
-    
-    for(int i = 0; i < len; i++){
-        char ch = microkit_mr_get(i);
-        enum character_state res_state = char_to_state(ch, word, i);
-        microkit_mr_set(i, res_state);
+    switch (ch) {
+        case CLIENT_CHANNEL_ID:
+            int len = microkit_msginfo_get_count(msginfo);
+            for(int i = 0; i < len; i++){
+                char c = microkit_mr_get(i);
+                enum character_state res_state = char_to_state(c, word, i);
+                microkit_mr_set(i, res_state);
+            }
+            return microkit_msginfo_new(0, len);
+            break;
+
+        case VMM_CHANNEL_ID:
+            for(int i = 0; i < WORD_LENGTH; i++){
+                word[i] = microkit_mr_get(i);
+            }
+            break;
+        
+        default:
+            break;
     }
 
-    return res;
+    return microkit_msginfo_new(0, 0);
+    
 }
