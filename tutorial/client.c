@@ -12,8 +12,11 @@
 
 #define INVALID_CHAR (-1)
 
-#define SENDER_CHANNEL_ID 0
+#define SERIAL_CHANNEL_ID 0
 #define PP_CHANEL_ID 1
+
+uintptr_t ibuf_vaddr;
+uintptr_t obuf_vaddr;
 
 struct wordle_char {
     int ch;
@@ -32,37 +35,32 @@ void wordle_server_send() {
     // After doing the PPC, the Wordle server should have updated
     // the message-registers containing the state of each character.
     // Look at the message registers and update the `table` accordingly.
-    int line = curr_row - 1;
     int i = 0;
     int count = WORD_LENGTH;
 
     microkit_msginfo msg = microkit_msginfo_new(0, count);
     for(i = 0; i < count; i++){
-        microkit_mr_set(i, table[line][i].ch);
-        microkit_dbg_puts("set char: ");
-        microkit_dbg_put8(table[line][i].ch);
-        microkit_dbg_putc('\n');
+        microkit_mr_set(i, table[curr_row][i].ch);
     }
     
-
-    microkit_msginfo remsg = microkit_ppcall(PP_CHANEL_ID, msg);
+    microkit_ppcall(PP_CHANEL_ID, msg);
+    
     for(i = 0; i < count; i++){
-        table[line][i].state = microkit_mr_get(i);
-        microkit_dbg_puts("received state: ");
-        microkit_dbg_put32(microkit_mr_get(i));
-        microkit_dbg_putc('\n');
+        table[curr_row][i].state = microkit_mr_get(i);
     }
     
 }
 
 void serial_send(char *str) {
     // Implement this function to get the serial server to print the string.
-    
-    while (*str){
-        *obuf_vaddr = *str;
-        str++;
-        obuf_vaddr++;
+    int i = 0;
+    while (str[i] != '\0'){
+        ((char *) obuf_vaddr)[i] = str[i];
+        i++;
     }
+    ((char *) obuf_vaddr)[i] = '\0';
+
+    microkit_notify(SERIAL_CHANNEL_ID);
 }
 
 // This function prints a CLI Wordle using pretty colours for what characters
@@ -158,12 +156,10 @@ void init(void) {
 void notified(microkit_channel channel) {
     //Receive a message from sender
     switch(channel) {
-        case SENDER_CHANNEL_ID:
-            while (*ibuf_vaddr){
-                add_char_to_table(*ibuf_vaddr);
-                ibuf_vaddr ++;
-            }
+        case SERIAL_CHANNEL_ID:
+            char ch = ((char *) ibuf_vaddr)[0];
+            if (ch != '\0') add_char_to_table(ch);
             print_table(true);
-            microkit_notify(SENDER_CHANNEL_ID);
+            break;
     }
 }

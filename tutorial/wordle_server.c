@@ -5,7 +5,7 @@
 #include "printf.h"
 #include "wordle.h"
 
-#define RECEIVER_CHANNEL_ID 0;
+#define CLIENT_CHANNEL_ID 0;
 /*
  * Here we initialise the word to "hello", but later in the tutorial
  * we will actually randomise the word the user is guessing.

@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <microkit.h>
 #include "printf.h"
-#include "wordle.h"
 
 // This variable will have the address of the UART device
 uintptr_t uart_base_vaddr;
@@ -17,7 +16,7 @@ uintptr_t uart_base_vaddr;
 #define REG_PTR(base, offset) ((volatile uint32_t *)((base) + (offset)))
 
 #define UART_CHANNEL_ID 0
-#define RECEIVER_CHANNEL_ID 1
+#define CLIENT_CHANNEL_ID 1
 
 void uart_init() {
     *REG_PTR(uart_base_vaddr, UARTIMSC) = 0x50;
@@ -73,30 +72,31 @@ void init(void) {
     // saying that the serial server has started.
     uart_put_str("SERIAL SERVER: starting\n");
     // Send a message to receiver
-    microkit_notify(RECEIVER_CHANNEL_ID);
+    microkit_notify(CLIENT_CHANNEL_ID);
 }
 
+uintptr_t ibuf_vaddr;
+uintptr_t obuf_vaddr;
+
 void handle_uart_input(microkit_channel channel){
-    int ch = uart_get_char();
-
-    *ibuf_vaddr = (char)ch;
-    ibuf_vaddr++;
-
+    ((char*) ibuf_vaddr)[0] = uart_get_char();
     uart_handle_irq();
     microkit_irq_ack(channel);
 
-    microkit_notify(RECEIVER_CHANNEL_ID);
+    microkit_notify(CLIENT_CHANNEL_ID);
 }
 
 void handle_uart_output(){
-    uart_put_str(obuf_vaddr);
+    uart_put_str((char *)obuf_vaddr);
 }
 
 void notified(microkit_channel channel) {
     switch(channel){
         case UART_CHANNEL_ID:
             handle_uart_input(channel);
-        case RECEIVER_CHANNEL_ID:
-            uart_put_str(obuf_vaddr);
+            break;
+        case CLIENT_CHANNEL_ID:
+            uart_put_str((char *) obuf_vaddr);
+            break;
     }
 }

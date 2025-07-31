@@ -6,6 +6,3 @@ enum character_state {
     INCORRECT_PLACEMENT = 1, // Correct character, in the incorrect index of the word.
     INCORRECT = 2, // Character does not appear in the word.
 };
-
-char *ibuf_vaddr;
-char *obuf_vaddr;
